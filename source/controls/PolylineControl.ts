@@ -9,6 +9,7 @@ import {PolylineObject} from "../visualObjects/PolylineObject";
 /**
  * Control for drawing polyline visualObjects.
  * @alias sGis.controls.Polyline
+ * @example controls/Polyline_Control
  */
 export class PolylineControl extends PolyControl {
     /**
