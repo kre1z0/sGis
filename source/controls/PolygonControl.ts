@@ -9,6 +9,7 @@ import {PolygonObject} from "../visualObjects/PolygonObject";
 /**
  * Control for drawing polygon visualObjects.
  * @alias sGis.control.Polygon
+ * @example controls/Polygon_Control
  */
 export class PolygonControl extends PolyControl {
     /**

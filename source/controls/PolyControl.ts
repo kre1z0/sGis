@@ -148,15 +148,15 @@ export abstract class PolyControl extends Control {
      * then two points, the ring is removed. If the feature has no rings, the feature is not added to the active layer.
      */
     finishDrawing(): void {
-        let feature = this._activeObject.feature;
-        let ringIndex = feature.rings.length - 1;
+        let object = this._activeObject;
+        let ringIndex = object.feature.rings.length - 1;
 
         this.cancelDrawing();
-        if (ringIndex === 0 && feature.rings[ringIndex].length < 3) return;
+        if (ringIndex === 0 && object.feature.rings[ringIndex].length < 3) return;
 
-        feature.removePoint(ringIndex, feature.rings[ringIndex].length - 1);
+        object.feature.removePoint(ringIndex, object.feature.rings[ringIndex].length - 1);
 
-        if (this.activeLayer) this.activeLayer.add(this._activeObject);
+        if (this.activeLayer) this.activeLayer.add(object);
     }
 
     /**
