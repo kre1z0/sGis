@@ -1,4 +1,4 @@
-import {ChangeEvent, Control, ControlConstructorParams, EditEvent} from "./Control";
+import {ChangeEvent, Control, ControlParams, EditEvent} from "./Control";
 import {Poly} from "../features/Poly";
 import {move} from "../geotools";
 import {Point} from "../Point";
@@ -9,13 +9,13 @@ import {Crs} from "../Crs";
 import {PolySnappingProvider} from "./snapping/PolySnappingProvider";
 import {lineSnapping, vertexSnapping} from "./snapping/SnappingMethods";
 
-export interface PolyEditorParams extends ControlConstructorParams {
+export interface PolyEditorParams extends ControlParams {
     onFeatureRemove?: () => void,
     hoverSnappingProvider?: PolySnappingProvider;
 }
 
 /**
- * Control for editing polyline and polygon features. When activeFeature is set, the feature becomes draggable.
+ * Control for editing polyline and polygon visualObjects. When activeFeature is set, the feature becomes draggable.
  * If a vertex is dragged, the vertex position is changed. If a side is dragged, a new point is added to the side and
  * then being dragged. If inside area of the polygon is dragged, the whole polygon will change position.
  * @alias sGis.controls.PolyEditor
@@ -155,7 +155,6 @@ export class PolyEditor extends Control {
             this._activeIndex,
             this._activeFeature instanceof Polygon
         ));
-        this._activeFeature.redraw();
         if (this.activeLayer) this.activeLayer.redraw();
         this.fire(new ChangeEvent(this._activeRing, this._activeIndex));
     }
@@ -169,7 +168,6 @@ export class PolyEditor extends Control {
 
     private _handleFeatureDrag(event: DragEvent): void {
         move([this._activeFeature], [-event.offset[0], -event.offset[1]], this.map.crs);
-        this._activeFeature.redraw();
         if (this.activeLayer) this.activeLayer.redraw();
 
         this.fire(new ChangeEvent());

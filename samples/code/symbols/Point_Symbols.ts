@@ -1,8 +1,7 @@
 /// Template: "full_screen_map.html"
 /// Title: "Point symbols"
 
-import {FeatureLayer} from "../../../source/layers/FeatureLayer";
-import {PointFeature} from "../../../source/features/Point";
+import {VisualObjectLayer} from "../../../source/layers/VisualObjectLayer";
 import {init} from "../../../source/init";
 import {PointSymbol} from "../../../source/symbols/point/Point";
 import {SquareSymbol} from "../../../source/symbols/point/Square";
@@ -12,6 +11,7 @@ import {Coordinates} from "../../../source/baseTypes";
 import {TileLayer} from "../../../source/layers/TileLayer";
 import {CrossPointSymbol} from "../../../source/symbols/point/CrossPointSymbol";
 import {DynamicImageSymbol} from "../../../source/symbols/point/DynamicImageSymbol";
+import {PointObject} from "../../../source/visualObjects/PointObject";
 
 let {map} = init({
     wrapper: document.body,
@@ -42,17 +42,17 @@ let symbols = [
 
 let step = 100 * map.resolution;
 let position: Coordinates = [map.position[0] - step * 4, map.position[1]];
-let features = [];
+let objects = [];
 
 let crossSymbol = new CrossPointSymbol();
 
 symbols.forEach(symbol => {
-    features.push(new PointFeature(position, {symbol: crossSymbol, crs: map.crs}));
-    features.push(new PointFeature(position, {symbol, crs: map.crs}));
+    objects.push(new PointObject(position, {symbol: crossSymbol, crs: map.crs}));
+    objects.push(new PointObject(position, {symbol, crs: map.crs}));
     position = [position[0] + step, position[1]];
 });
 
-let layer = new FeatureLayer({features});
+let layer = new VisualObjectLayer({visualObjects: objects});
 map.addLayer(layer);
 
 function updateLayer() { layer.redraw(); }

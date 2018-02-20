@@ -1,27 +1,30 @@
 import {Poly} from "./Poly";
-import {PolygonSymbol} from "../symbols/polygon/Simple";
-import {FeatureParams} from "./Feature";
-import {Symbol} from "../symbols/Symbol";
+import {Feature, FeatureParams} from "./Feature";
+import {copyArray} from "../utils/utils";
+import {Crs} from "../Crs";
+import {projectRings} from "../geotools";
 
 /**
  * Polygon with one or more contours (rings). Coordinates in the contours must not be enclosed (first and last points must not be same).
  * @alias sGis.feature.Polygon
- * @extends sGis.feature.Poly
  */
 export class Polygon extends Poly {
-    /** Current symbol of the feature. If temporary symbol is set, the value will be the temporary symbol. */
-    _symbol: Symbol;
-    isEnclosed = true;
+    protected _isEnclosed: boolean = true;
 
-    constructor(rings, {symbol = new PolygonSymbol(), crs}: FeatureParams = {}, extension?: Object) {
-        super(rings, {symbol, crs}, extension);
+    constructor(rings, {crs}: FeatureParams = {}) {
+        super(rings, {crs});
     }
 
     /**
      * Returns a copy of the feature. Only generic properties are copied.
-     * @returns {sGis.feature.Polygon}
      */
     clone() {
-        return new Polygon(this.rings, {crs: this.crs, symbol: this.originalSymbol});
+        return new Polygon(copyArray(this.rings), {crs: this.crs});
+    }
+
+    projectTo(crs: Crs): Polygon
+    projectTo(crs: Crs): Feature {
+        let projected = projectRings(this.rings, this.crs, crs);
+        return new Polygon(projected, {crs: this.crs});
     }
 }

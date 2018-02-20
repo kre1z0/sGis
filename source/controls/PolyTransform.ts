@@ -2,13 +2,14 @@ import {Control} from "./Control";
 import {PointSymbol} from "../symbols/point/Point";
 import {SquareSymbol} from "../symbols/point/Square";
 import {Poly} from "../features/Poly";
-import {PointFeature} from "../features/Point";
+import {PointFeature} from "../features/PointFeature";
 import {rotate, scale} from "../geotools";
 import {Coordinates} from "../baseTypes";
 import {Symbol} from "../symbols/Symbol";
 import {Map} from "../Map";
 import {DragEndEvent, DragEvent, DragStartEvent} from "../commonEvents";
 import {sGisEvent} from "../EventHandler";
+import {PointObject} from "../visualObjects/PointObject";
 
 /**
  * @event RotationStartEvent
@@ -65,10 +66,10 @@ export class ScalingEndEvent extends sGisEvent {
  */
 export class PolyTransform extends Control {
     /** Symbol of the rotation handle. */
-    rotationHandleSymbol: Symbol = new PointSymbol({offset: [0, -30]});
+    rotationHandleSymbol: Symbol<PointFeature> = new PointSymbol({offset: [0, -30]});
 
     /** Symbol of the scaling handles. */
-    scaleHandleSymbol: Symbol = new SquareSymbol({ fillColor: 'transparent', strokeColor: 'black', strokeWidth: 2, size: 7 });
+    scaleHandleSymbol: Symbol<PointFeature> = new SquareSymbol({ fillColor: 'transparent', strokeColor: 'black', strokeWidth: 2, size: 7 });
 
     /** Distance in pixels between scaling handles and feature bbox. */
     scaleHandleOffset: number = 12;
@@ -82,8 +83,8 @@ export class PolyTransform extends Control {
     ignoreEvents: boolean = false;
 
     private _activeFeature: Poly | null;
-    private _rotationHandle: PointFeature;
-    private _scaleHandles: PointFeature[];
+    private _rotationHandle: PointObject;
+    private _scaleHandles: PointObject[];
     private _rotationBase: Coordinates | null;
 
     /**
@@ -132,12 +133,12 @@ export class PolyTransform extends Control {
     }
 
     private _setRotationHandle(): void {
-        this._rotationHandle = new PointFeature([0, 0], {crs: this.map.crs, symbol: this.rotationHandleSymbol});
+        this._rotationHandle = new PointObject([0, 0], {crs: this.map.crs, symbol: this.rotationHandleSymbol});
         this._updateRotationHandle();
 
-        this._rotationHandle.on(DragStartEvent.type, this._handleRotationStart);
-        this._rotationHandle.on(DragEvent.type, this._handleRotation);
-        this._rotationHandle.on(DragEndEvent.type, this._handleRotationEnd);
+        this._rotationHandle.feature.on(DragStartEvent.type, this._handleRotationStart);
+        this._rotationHandle.feature.on(DragEvent.type, this._handleRotation);
+        this._rotationHandle.feature.on(DragEndEvent.type, this._handleRotationEnd);
 
         this._tempLayer.add(this._rotationHandle);
     }
@@ -152,11 +153,11 @@ export class PolyTransform extends Control {
             let yk = 1- Math.floor(i/3);
             symbol.offset = [this.scaleHandleOffset * xk, this.scaleHandleOffset * yk];
 
-            this._scaleHandles[i] = new PointFeature([0, 0], {symbol: symbol, crs: this.map.crs});
+            this._scaleHandles[i] = new PointObject([0, 0], {symbol: symbol, crs: this.map.crs});
 
-            this._scaleHandles[i].on(DragStartEvent.type, this._handleScalingStart.bind(this, i));
-            this._scaleHandles[i].on(DragEvent.type, this._handleScaling.bind(this, i));
-            this._scaleHandles[i].on(DragEndEvent.type, this._handleScalingEnd);
+            this._scaleHandles[i].feature.on(DragStartEvent.type, this._handleScalingStart.bind(this, i));
+            this._scaleHandles[i].feature.on(DragEvent.type, this._handleScaling.bind(this, i));
+            this._scaleHandles[i].feature.on(DragEndEvent.type, this._handleScalingEnd);
         }
 
         this._tempLayer.add(this._scaleHandles);
@@ -167,7 +168,7 @@ export class PolyTransform extends Control {
         if (this.ignoreEvents) return;
 
         this._rotationBase = this._activeFeature.bbox.center.projectTo(this.map.crs).position;
-        event.draggingObject = this._rotationHandle;
+        event.draggingObject = this._rotationHandle.feature;
         event.stopPropagation();
 
         this.fire(new RotationStartEvent());
@@ -199,7 +200,7 @@ export class PolyTransform extends Control {
 
     private _updateRotationHandle(): void {
         let bbox = this._activeFeature.bbox.projectTo(this.map.crs);
-        this._rotationHandle.position = [(bbox.xMin + bbox.xMax)/2, bbox.yMax];
+        this._rotationHandle.feature.position = [(bbox.xMin + bbox.xMax)/2, bbox.yMax];
     }
 
     private _updateScaleHandles(): void {
@@ -209,14 +210,14 @@ export class PolyTransform extends Control {
 
         for (let i = 0; i < 9; i++) {
             if (i === 4) continue;
-            this._scaleHandles[i].position = [xs[i%3], ys[Math.floor(i/3)]];
+            this._scaleHandles[i].feature.position = [xs[i%3], ys[Math.floor(i/3)]];
         }
     }
 
     private _handleScalingStart(index: number, event: DragStartEvent): void {
         if (this.ignoreEvents) return;
 
-        event.draggingObject = this._scaleHandles[index];
+        event.draggingObject = this._scaleHandles[index].feature;
         event.stopPropagation();
 
         this.fire(new ScalingStartEvent());
@@ -229,7 +230,7 @@ export class PolyTransform extends Control {
 
         let baseX = xIndex === 0 ? 2 : xIndex === 2 ? 0 : 1;
         let baseY = yIndex === 0 ? 2 : yIndex === 2 ? 0 : 1;
-        let basePoint = this._scaleHandles[baseX + 3 * baseY].position;
+        let basePoint = this._scaleHandles[baseX + 3 * baseY].feature.position;
 
         let bbox = this._activeFeature.bbox.projectTo(this.map.crs);
         let resolution = this.map.resolution;

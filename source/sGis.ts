@@ -18,9 +18,9 @@ import * as CrsModule from "./Crs";
 export {DynamicLayer} from "./layers/DynamicLayer";
 export {EventHandler} from "./EventHandler";
 export {Feature} from "./features/Feature";
-import {PointFeature} from "./features/Point";
+import {PointFeature} from "./features/PointFeature";
 import {Polygon} from "./features/Polygon";
-export {FeatureLayer} from "./layers/FeatureLayer";
+export {VisualObjectLayer} from "./layers/VisualObjectLayer";
 export {Layer} from "./layers/Layer";
 export {LayerGroup} from "./LayerGroup";
 import {DomPainter} from "./painters/DomPainter/DomPainter";
@@ -52,8 +52,8 @@ import * as symbolSerializer from "./serializers/symbolSerializer";
 import * as eventModule from "./utils/domEvent";
 import {EditorSymbol} from "./symbols/EditorSymbol";
 import {CombinedSnappingProvider} from "./controls/snapping/CombinedSnappingProvider";
-import {LabelFeature} from "./features/Label";
-import {Balloon} from "./features/Balloon";
+import {LabelFeature} from "./features/LabelFeature";
+import {BalloonFeature} from "./features/BalloonFeature";
 import {DynamicLabelSymbol} from "./symbols/label/DynamicLabelSymbol";
 import {StaticLabelSymbol} from "./symbols/label/StaticLabelSymbol";
 import {BalloonSymbol} from "./symbols/BalloonSymbol";
@@ -101,7 +101,7 @@ export const feature = {
     Polygon: Polygon,
     Polyline: Polyline,
     Label: LabelFeature,
-    Balloon: Balloon
+    Balloon: BalloonFeature
 };
 
 export const painter = {

@@ -1,8 +1,9 @@
 import {Control} from "./Control";
-import {FeatureLayer} from "../layers/FeatureLayer";
 import {MultiPoint} from "../features/MultiPoint";
 import {PointSymbol} from "../symbols/point/Point";
 import {Symbol} from "../symbols/Symbol";
+import {MultiPointSymbol} from "../symbols/MultiPointSymbol";
+import {VisualObject} from "../visualObjects/VisualObject";
 
 /**
  * Control for creating multipoints. When active, every click on the map will add a new point to the current multipoint.
@@ -13,17 +14,16 @@ import {Symbol} from "../symbols/Symbol";
  * added to the active layer.
  *
  * @alias sGis.controls.MultiPoint
- * @extends sGis.Control
  * @fires sGis.controls.MultiPoint#drawingBegin
  * @fires sGis.controls.MultiPoint#pointAdd
  * @fires sGis.controls.MultiPoint#drawingFinish
  */
 export class MultiPointControl extends Control {
     private _dblClickTime: number;
-    private _activeFeature: MultiPoint;
+    private _activeObject: VisualObject<MultiPoint>;
 
     dblClickTimeout: number = 30;
-    symbol: Symbol = new PointSymbol();
+    symbol: Symbol<MultiPoint> = new MultiPointSymbol(new PointSymbol);
 
     /**
      * @param {sGis.Map} map - map the control will work with
@@ -49,8 +49,8 @@ export class MultiPointControl extends Control {
     _handleClick(sGisEvent) {
         setTimeout(() => {
             if (Date.now() - this._dblClickTime < this.dblClickTimeout) return;
-            if (this._activeFeature) {
-                this._activeFeature.addPoint(sGisEvent.point);
+            if (this._activeObject) {
+                this._activeObject.feature.addPoint(sGisEvent.point);
             } else {
                 this.startNewFeature(sGisEvent.point);
                 this.fire('drawingBegin');
@@ -71,8 +71,11 @@ export class MultiPointControl extends Control {
         this.activate();
         this.cancelDrawing();
 
-        this._activeFeature = new MultiPoint([point.position], { crs: this.map.crs, symbol: this.symbol });
-        this._tempLayer.add(this._activeFeature);
+        this._activeObject = new VisualObject({
+            feature: new MultiPoint([point.position], {crs: this.map.crs}),
+            symbol: this.symbol
+        });
+        this._tempLayer.add(this._activeObject);
 
         this._setHandlers();
     }
@@ -85,16 +88,16 @@ export class MultiPointControl extends Control {
      * Cancels drawing of the current feature, removes the feature and the temp layer. No events are fired.
      */
     cancelDrawing() {
-        if (!this._activeFeature) return;
+        if (!this._activeObject) return;
 
         this.map.removeListener('dblclick', this._handleDblclick);
 
-        if (this._tempLayer.has(this._activeFeature)) this._tempLayer.remove(this._activeFeature);
-        this._activeFeature = null;
+        if (this._tempLayer.has(this._activeObject)) this._tempLayer.remove(this._activeObject);
+        this._activeObject = null;
     }
 
     _handleDblclick(sGisEvent) {
-        let feature = this._activeFeature;
+        let feature = this._activeObject;
         this.finishDrawing();
         sGisEvent.stopPropagation();
         this._dblClickTime = Date.now();
@@ -105,7 +108,7 @@ export class MultiPointControl extends Control {
      * Finishes drawing of the current feature and moves it to the active layer (if set).
      */
     finishDrawing() {
-        let feature = this._activeFeature;
+        let feature = this._activeObject;
         this.cancelDrawing();
         if (this.activeLayer) this.activeLayer.add(feature);
     }
@@ -114,12 +117,12 @@ export class MultiPointControl extends Control {
      * The active drawing feature.
      * @type {sGis.feature.MultiPoint}
      */
-    get activeFeature() { return this._activeFeature; }
-    set activeFeature(/** sGis.feature.MultiPoint */ feature) {
+    get activeFeature(): MultiPoint { return this._activeObject.feature; }
+    set activeFeature(feature: MultiPoint) {
         if (!this._isActive) return;
         this.cancelDrawing();
 
-        this._activeFeature = feature;
+        this._activeObject = new VisualObject({feature, symbol: this.symbol});
         this._setHandlers();
     }
 }

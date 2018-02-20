@@ -3,12 +3,12 @@ import {Map} from "../Map";
 import {DomPainter} from "../painters/DomPainter/DomPainter";
 import {Feature} from "../features/Feature";
 import {sGisClickEvent} from "../commonEvents";
-import {Balloon} from "../features/Balloon";
 import {Poly} from "../features/Poly";
-import {PointFeature} from "../features/Point";
+import {PointFeature} from "../features/PointFeature";
 import {getGuid} from "../utils/utils";
 import {BalloonSymbol} from "../symbols/BalloonSymbol";
 import {Bbox} from "../Bbox";
+import {BalloonObject} from "../visualObjects/BalloonObject";
 
 const OFFSET = 10;
 
@@ -18,7 +18,7 @@ const OFFSET = 10;
 export class BalloonControl extends Control {
     painter: DomPainter;
 
-    private _activeBalloon?: Balloon;
+    private _activeBalloon?: BalloonObject;
     private _ns: string;
     private _symbol: BalloonSymbol;
 
@@ -32,7 +32,7 @@ export class BalloonControl extends Control {
     }
 
     attach(feature: Feature, html: HTMLElement | string): void {
-        let balloon = new Balloon({position: [0, 0], crs: feature.crs, content: html, symbol: this._symbol});
+        let balloon = new BalloonObject([0, 0], {crs: feature.crs, content: html, symbol: this._symbol});
         feature.on(sGisClickEvent.type + this._ns, this._showBalloon.bind(this, feature, balloon));
     }
 
@@ -40,13 +40,13 @@ export class BalloonControl extends Control {
         feature.off(this._ns);
     }
 
-    private _showBalloon(feature: Feature, balloon: Balloon, event: sGisClickEvent): void {
+    private _showBalloon(feature: Feature, balloon: BalloonObject, event: sGisClickEvent): void {
         event.stopPropagation();
 
         if (feature instanceof Poly) {
-            balloon.position = feature.centroid;
+            balloon.feature.position = feature.centroid;
         } else if (feature instanceof PointFeature) {
-            balloon.position = feature.position;
+            balloon.feature.position = feature.position;
         }
 
         if (this._activeBalloon) {
@@ -62,15 +62,15 @@ export class BalloonControl extends Control {
     private _onRender() {
         if (!this.painter) return;
 
-        let node = this._symbol.getNode(this._activeBalloon);
+        let node = this._symbol.getNode(this._activeBalloon.feature);
         if (!node) return;
 
         let size = node.getBoundingClientRect();
-        let position = this._activeBalloon.projectTo(this.map.crs).position;
+        let position = this._activeBalloon.feature.projectTo(this.map.crs).position;
         let resolution = this.map.resolution;
         let halfWidth = size.width * resolution / 2;
         let height = size.height * resolution;
-        let balloonBbox = new Bbox([position[0] - halfWidth, position[1]], [position[0] + halfWidth, position[1] + height], this._activeBalloon.crs)
+        let balloonBbox = new Bbox([position[0] - halfWidth, position[1]], [position[0] + halfWidth, position[1] + height], this._activeBalloon.feature.crs)
             .offset([OFFSET * resolution, OFFSET * resolution]);
         let mapBbox = this.painter.bbox;
 

@@ -1,4 +1,4 @@
-import {Control, ControlWithSymbolParams, DrawingBeginEvent, DrawingFinishEvent} from "./Control";
+import {Control, ControlParams, DrawingBeginEvent, DrawingFinishEvent} from "./Control";
 import {PolygonSymbol} from "../symbols/polygon/Simple";
 import {Polygon} from "../features/Polygon";
 import {Map} from "../Map";
@@ -6,6 +6,11 @@ import {Symbol} from "../symbols/Symbol";
 import {Contour} from "../baseTypes";
 import {Point} from "../Point";
 import {DragEndEvent, DragEvent, DragStartEvent} from "../commonEvents";
+import {PolygonObject} from "../visualObjects/PolygonObject";
+
+export interface PolyDragParams extends ControlParams {
+    symbol?: Symbol<Polygon>;
+}
 
 /**
  * Base class for controls that create polygon feature by dragging some area on the map. When the control is activated,
@@ -17,16 +22,16 @@ import {DragEndEvent, DragEvent, DragStartEvent} from "../commonEvents";
  */
 export abstract class PolyDrag extends Control {
     /**
-     * Symbol that will be used for features created by this control.
+     * Symbol that will be used for visualObjects created by this control.
      */
-    symbol: Symbol;
-    protected _activeFeature: Polygon | null;
+    symbol: Symbol<Polygon>;
+    protected _activeObject: PolygonObject | null;
 
     /**
      * @param map - map the control will work with
      * @param __namedParameters - key-value set of properties to be set to the instance
      */
-    constructor(map: Map, {symbol = new PolygonSymbol(), activeLayer = null, isActive = false}: ControlWithSymbolParams = {}) {
+    constructor(map: Map, {symbol = new PolygonSymbol(), activeLayer = null, isActive = false}: PolyDragParams = {}) {
         super(map, {activeLayer, useTempLayer: true});
 
         this.symbol = symbol;
@@ -43,14 +48,14 @@ export abstract class PolyDrag extends Control {
     }
 
     protected _deactivate(): void {
-        this._activeFeature = null;
+        this._activeObject = null;
         this._removeDragListeners();
         this.map.off(DragStartEvent.type, this._handleDragStart);
     }
 
     private _handleDragStart(event: DragStartEvent): void {
-        this._activeFeature = new Polygon(this._getNewCoordinates(event.point), {crs: event.point.crs, symbol: this.symbol});
-        this._tempLayer.add(this._activeFeature);
+        this._activeObject = new PolygonObject(this._getNewCoordinates(event.point), {crs: event.point.crs, symbol: this.symbol});
+        this._tempLayer.add(this._activeObject);
 
         this.map.on(DragEvent.type, this._handleDrag);
         this.map.on(DragEndEvent.type, this._handleDragEnd);
@@ -59,22 +64,22 @@ export abstract class PolyDrag extends Control {
     }
 
     private _handleDrag(event: DragEvent): void {
-        this._activeFeature.rings = this._getUpdatedCoordinates(event.point);
+        this._activeObject.feature.rings = this._getUpdatedCoordinates(event.point);
 
         this._tempLayer.redraw();
         event.stopPropagation();
     }
 
     private _handleDragEnd(event: DragEndEvent): void {
-        let feature = this._activeFeature;
-        this._activeFeature = null;
-        if (this._tempLayer && this._tempLayer.has(feature)) {
-            this._tempLayer.remove(feature);
+        let object = this._activeObject;
+        this._activeObject = null;
+        if (this._tempLayer && this._tempLayer.has(object)) {
+            this._tempLayer.remove(object);
         }
         this._removeDragListeners();
 
-        if (this.activeLayer) this.activeLayer.add(feature);
-        this.fire(new DrawingFinishEvent(feature, event.browserEvent));
+        if (this.activeLayer) this.activeLayer.add(object);
+        this.fire(new DrawingFinishEvent(object.feature, event.browserEvent));
     }
 
     private _removeDragListeners(): void {
@@ -97,5 +102,5 @@ export abstract class PolyDrag extends Control {
     /**
      * The feature being drawn.
      */
-    get activeFeature(): Polygon { return this._activeFeature; }
+    get activeFeature(): Polygon { return this._activeObject.feature; }
 }

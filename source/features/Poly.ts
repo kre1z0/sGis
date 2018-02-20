@@ -1,26 +1,26 @@
 import {Feature, FeatureParams} from "./Feature";
 import {Coordinates} from "../baseTypes";
 import {copyArray, isArray} from "../utils/utils";
-import {IPoint, Point} from "../Point";
+import {IPoint} from "../Point";
 import {Bbox} from "../Bbox";
 import {Crs} from "../Crs";
-import {projectRings} from "../geotools";
-
 
 /**
  * Base class for polylines and polygons.
  * @alias sGis.feature.Poly
- * @extends sGis.Feature
  */
-export class Poly extends Feature {
+export abstract class Poly extends Feature {
     private _rings: Coordinates[][];
     private _bbox: Bbox;
+
+    protected abstract _isEnclosed: boolean;
+
     /**
      * @param {Position[][]} rings - coordinates of the feature
      * @param {Object} properties - key-value set of properties to be set to the instance
      */
-    constructor(rings: Coordinates[][] | Coordinates[], properties?: FeatureParams, extension?: Object) {
-        super(properties, extension);
+    constructor(rings: Coordinates[][] | Coordinates[], properties?: FeatureParams) {
+        super(properties);
         if (rings && rings.length > 0) {
             if (!isArray(rings[0][0])) rings = [<Coordinates[]>rings];
             this.rings = copyArray(rings);
@@ -28,6 +28,8 @@ export class Poly extends Feature {
             this._rings = [[]];
         }
     }
+
+    get isEnclosed() { return this._isEnclosed; }
 
     /**
      * Array of contours of coordinates. The contours must be not-enclosed for both polylines and polygons (first and last points of a contour must not be same)
@@ -72,27 +74,9 @@ export class Poly extends Feature {
         this._update();
     }
 
-    private _update(): void {
+    protected _update(): void {
         this._bbox = null;
-        this.redraw();
-    }
-
-    /**
-     * Returns a copy of the feature. Only generic properties are copied.
-     * @returns {sGis.feature.Poly}
-     */
-    clone(): Poly {
-        return new Poly(this.rings, { crs: this.crs });
-    }
-
-    /**
-     * Returns a copy of the feature, projected into the given coordinate system. Only generic properties are copied to the projected feature.
-     * @param {sGis.Crs} crs - target coordinate system.
-     * @returns {sGis.feature.Poly}
-     */
-    projectTo(crs: Crs): Poly {
-        let projected = projectRings(this.rings, this.crs, crs);
-        return new Poly(projected, { crs: crs, symbol: this.symbol });
+        super._update();
     }
 
     /**
@@ -170,4 +154,6 @@ export class Poly extends Feature {
      */
     get coordinates() { return copyArray(this._rings); }
     set coordinates(rings) { this.rings = copyArray(rings); }
+
+    abstract projectTo(crs: Crs): Poly;
 }

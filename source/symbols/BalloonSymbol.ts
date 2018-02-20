@@ -1,7 +1,7 @@
 import {DynamicPointSymbol, DynamicPointSymbolParams} from "./Symbol";
 import {Feature} from "../features/Feature";
 import {setStyleNode} from "../utils/utils";
-import {Balloon} from "../features/Balloon";
+import {BalloonFeature} from "../features/BalloonFeature";
 import {MapHtmlElement} from "../painters/DomPainter/EventDispatcher";
 
 setStyleNode(`
@@ -41,7 +41,7 @@ export class BalloonSymbol extends DynamicPointSymbol {
     }
 
     protected _getFeatureNode(feature: Feature): HTMLElement {
-        let balloonFeature = <Balloon>feature;
+        let balloonFeature = <BalloonFeature>feature;
 
         let node = document.createElement('div');
         node.className = 'sGis-balloon';

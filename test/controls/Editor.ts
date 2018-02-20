@@ -1,7 +1,7 @@
 import "jest";
 import {Map} from "../../source/Map";
-import {FeatureLayer} from "../../source/layers/FeatureLayer";
-import {PointFeature} from "../../source/features/Point";
+import {VisualObjectLayer} from "../../source/layers/VisualObjectLayer";
+import {PointFeature} from "../../source/features/PointFeature";
 import {Editor} from "../../source/controls/Editor";
 
 describe('Editor Control', () => {
@@ -10,7 +10,7 @@ describe('Editor Control', () => {
 
     beforeEach(() => {
         map = new Map();
-        layer = new FeatureLayer();
+        layer = new VisualObjectLayer();
         map.addLayer(layer);
 
         features = [];
@@ -35,7 +35,7 @@ describe('Editor Control', () => {
         expect(control.activeFeature).toBe(features[1]);
     });
 
-    it('should listen for added features', () => {
+    it('should listen for added visualObjects', () => {
         layer.add(features[0]);
         control.activeLayer = layer;
         control.activate();
@@ -48,12 +48,12 @@ describe('Editor Control', () => {
         features[3].fire('click');
         expect(control.activeFeature).toBe(features[3]);
 
-        layer.features = features;
+        layer.visualObjects = features;
         features[4].fire('click');
         expect(control.activeFeature).toBe(features[4]);
     });
 
-    it('should remove listeners from removed features', () => {
+    it('should remove listeners from removed visualObjects', () => {
         layer.add(features);
         control.activeLayer = layer;
         control.activate();
@@ -67,7 +67,7 @@ describe('Editor Control', () => {
         features[2].fire('click');
         expect(control.activeFeature).toBe(null);
 
-        layer.features = [];
+        layer.visualObjects = [];
         features[3].fire('click');
         expect(control.activeFeature).toBe(null);
     });

@@ -1,25 +1,27 @@
 import {Poly} from "./Poly";
-import {PolylineSymbol} from "../symbols/PolylineSymbol";
-import {FeatureParams} from "./Feature";
-import {Symbol} from "../symbols/Symbol";
+import {Feature, FeatureParams} from "./Feature";
+import {Crs} from "../Crs";
+import {projectRings} from "../geotools";
+import {copyArray} from "../utils/utils";
 
 /**
  * A line or a set of geographical lines.
  * @alias sGis.feature.Polyline
- * @extends sGis.feature.Poly
  */
 export class Polyline extends Poly {
-    _symbol: Symbol;
+    protected _isEnclosed: boolean = false;
 
-    constructor(rings, {symbol = new PolylineSymbol(), crs}: FeatureParams = {}, extension?: Object) {
-        super(rings, {symbol, crs}, extension);
+    constructor(rings, {crs}: FeatureParams = {}) {
+        super(rings, {crs});
     }
 
-    /**
-     * Returns a copy of the feature. Only generic properties are copied.
-     * @returns {sGis.feature.Polyline}
-     */
     clone() {
-        return new Polyline(this.rings, {crs: this.crs, symbol: this.originalSymbol});
+        return new Polyline(copyArray(this.rings), {crs: this.crs});
+    }
+
+    projectTo(crs: Crs): Polyline
+    projectTo(crs: Crs): Feature {
+        let projected = projectRings(this.rings, this.crs, crs);
+        return new Polyline(projected, {crs: this.crs});
     }
 }

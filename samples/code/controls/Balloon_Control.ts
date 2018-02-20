@@ -1,13 +1,13 @@
 /// Template: "full_screen_map.html"
-/// Title: "Map Balloon Control"
+/// Title: "Map BalloonFeature Control"
 
 import {init} from "../../../source/init";
 import {TileLayer} from "../../../source/layers/TileLayer";
-import {FeatureLayer} from "../../../source/layers/FeatureLayer";
-import {PointFeature} from "../../../source/features/Point";
+import {VisualObjectLayer} from "../../../source/layers/VisualObjectLayer";
 import {Coordinates} from "../../../source/baseTypes";
 import {BalloonControl} from "../../../source/controls/BalloonControl";
 import {Point} from "../../../source/Point";
+import {PointObject} from "../../../source/visualObjects/PointObject";
 
 let points = [
     {position: [55.7514, 37.6409], text: 'Moscow', link: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/MSK_Collage_2015.png/343px-MSK_Collage_2015.png'},
@@ -23,11 +23,11 @@ let {map, painter} = init({
 
 let control = new BalloonControl(map, {painter});
 
-let featureLayer = new FeatureLayer();
+let layer = new VisualObjectLayer();
 points.forEach(point => {
-    let feature = new PointFeature(<Coordinates>point.position);
-    control.attach(feature, `<h1>${point.text}</h1><img src="${point.link}" />`);
-    featureLayer.add(feature);
+    let object = new PointObject(<Coordinates>point.position);
+    control.attach(object.feature, `<h1>${point.text}</h1><img src="${point.link}" />`);
+    layer.add(object);
 });
 
-map.addLayer(featureLayer);
+map.addLayer(layer);

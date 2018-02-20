@@ -5,7 +5,7 @@ import {Offset} from "../../baseTypes";
 import {Feature} from "../../features/Feature";
 import {Crs} from "../../Crs";
 import {Render} from "../../renders/Render";
-import {PointFeature} from "../../features/Point";
+import {PointFeature} from "../../features/PointFeature";
 import {warn} from "../../utils/utils";
 
 export interface SquareSymbolConstructorParams {
@@ -25,7 +25,7 @@ export interface SquareSymbolConstructorParams {
  * Symbol of point drawn as a square.
  * @alias sGis.symbol.point.Square
  */
-export class SquareSymbol extends Symbol {
+export class SquareSymbol extends Symbol<PointFeature> {
     /** Size of the square. */
     size: number = 10;
 

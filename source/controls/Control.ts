@@ -1,12 +1,13 @@
 import {EventHandler, sGisEvent} from "../EventHandler";
 import {Map} from "../Map";
-import {FeatureLayer} from "../layers/FeatureLayer";
+import {VisualObjectLayer} from "../layers/VisualObjectLayer";
 import {ISnappingProvider} from "./snapping/ISnappingProvider";
 import {Contour, Coordinates} from "../baseTypes";
-import {PointFeature} from "../features/Point";
+import {PointFeature} from "../features/PointFeature";
 import {CrossPointSymbol} from "../symbols/point/CrossPointSymbol";
 import {Symbol} from "../symbols/Symbol";
 import {Feature} from "../features/Feature";
+import {PointObject} from "../visualObjects/PointObject";
 
 /**
  * Drawing of a new feature is started. When this event is fired, the control will have a new feature as its .activeFeature property.
@@ -94,19 +95,15 @@ export class PointAddEvent extends sGisEvent {
     }
 }
 
-export interface ControlConstructorParams {
+export interface ControlParams {
     /** @see [[Control.useTempLayer]] */
     useTempLayer?: boolean,
     /** @see [[Control.snappingProvider]] */
     snappingProvider?: ISnappingProvider,
     /** @see [[Control.activeLayer]] */
-    activeLayer?: FeatureLayer,
+    activeLayer?: VisualObjectLayer,
     /** @see [[Control.isActive]] */
     isActive?: boolean
-}
-
-export interface ControlWithSymbolParams extends ControlConstructorParams{
-    symbol?: Symbol
 }
 
 /**
@@ -115,16 +112,16 @@ export interface ControlWithSymbolParams extends ControlConstructorParams{
  */
 export abstract class Control extends EventHandler {
     private _map: Map;
-    private _snappingFeature: PointFeature;
-    private _snappingSymbol: Symbol = new CrossPointSymbol();
+    private _snappingFeature: PointObject;
+    private _snappingSymbol: Symbol<PointFeature> = new CrossPointSymbol();
 
     protected _isActive: boolean = false;
 
     /**
      * Temporary feature layer that is added to the map when the control is activated. It is used to show snapping point
-     * and can be used as a temporary storage for features the control works with.
+     * and can be used as a temporary storage for visualObjects the control works with.
      */
-    protected _tempLayer: FeatureLayer | null = null;
+    protected _tempLayer: VisualObjectLayer | null = null;
 
     /**
      * If set to true, when activated the control will create a temporary feature layer and add in to the map. When
@@ -141,13 +138,13 @@ export abstract class Control extends EventHandler {
     /**
      * Vector layer the control will work with. Some controls do not require active layer to be set.
      */
-    activeLayer: FeatureLayer | null;
+    activeLayer: VisualObjectLayer | null;
 
     /**
      * @param map - map the control will work with.
      * @param __namedParameters - key-value set of properties to be set to the instance
      */
-    constructor(map: Map, {useTempLayer = false, snappingProvider = null, activeLayer = null, isActive = false}: ControlConstructorParams = {}) {
+    constructor(map: Map, {useTempLayer = false, snappingProvider = null, activeLayer = null, isActive = false}: ControlParams = {}) {
         super();
         this._map = map;
         this.useTempLayer = useTempLayer;
@@ -193,7 +190,7 @@ export abstract class Control extends EventHandler {
 
         if (bool) {
             if (this.useTempLayer) {
-                this._tempLayer = new FeatureLayer();
+                this._tempLayer = new VisualObjectLayer();
                 this._map.addLayer(this._tempLayer);
             }
             this._activate();
@@ -249,13 +246,13 @@ export abstract class Control extends EventHandler {
         }
     }
 
-    private _getSnappingFeature(point: Coordinates | null): PointFeature {
+    private _getSnappingFeature(point: Coordinates | null): PointObject {
         if (!this._snappingFeature) {
-            this._snappingFeature = new PointFeature([0, 0], {crs: this._map.crs, symbol: this._snappingSymbol});
+            this._snappingFeature = new PointObject([0, 0], {crs: this._map.crs, symbol: this._snappingSymbol});
         }
 
         if (point) {
-            this._snappingFeature.position = point;
+            this._snappingFeature.feature.position = point;
         }
 
         return this._snappingFeature;

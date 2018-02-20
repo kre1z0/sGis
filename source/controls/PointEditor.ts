@@ -1,9 +1,9 @@
-import {Control, ControlConstructorParams, EditEvent} from "./Control";
-import {PointFeature} from "../features/Point";
+import {Control, ControlParams, EditEvent} from "./Control";
+import {PointFeature} from "../features/PointFeature";
 import {DragEndEvent, DragEvent, DragStartEvent} from "../commonEvents";
 
 /**
- * Control for editing point features. When activeFeature is set, the feature is becoming draggable.
+ * Control for editing point visualObjects. When activeFeature is set, the feature is becoming draggable.
  * @alias sGis.controls.PointEditor
  * @fires [[EditEvent]]
  */
@@ -15,7 +15,7 @@ export class PointEditor extends Control {
      * @param map - map object the control will work with
      * @param __namedParameters - key-value set of properties to be set to the instance
      */
-    constructor(map, {snappingProvider = null, isActive = false, activeLayer = null}: ControlConstructorParams = {}) {
+    constructor(map, {snappingProvider = null, isActive = false, activeLayer = null}: ControlParams = {}) {
         super(map, {useTempLayer: true, snappingProvider, activeLayer});
 
         this._handleDragStart = this._handleDragStart.bind(this);

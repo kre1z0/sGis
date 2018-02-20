@@ -4,7 +4,7 @@ import {PIN_IMAGE} from "../../resourses/images";
 import {Coordinates, Offset} from "../../baseTypes";
 import {Feature} from "../../features/Feature";
 import {Crs} from "../../Crs";
-import {PointFeature} from "../../features/Point";
+import {PointFeature} from "../../features/PointFeature";
 import {DynamicRender, Render} from "../../renders/Render";
 import {Point} from "../../Point";
 import {Bbox} from "../../Bbox";

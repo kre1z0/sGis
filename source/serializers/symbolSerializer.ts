@@ -1,9 +1,10 @@
 import {Color} from "../utils/Color";
 import {copyObject, error} from "../utils/utils";
 import {Symbol, SymbolConstructor} from "../symbols/Symbol";
+import {Feature} from "../features/Feature";
 
 type SymbolDescription = {
-    Constructor: SymbolConstructor,
+    Constructor: SymbolConstructor<Feature>,
     properties: string[]
 }
 
@@ -23,7 +24,7 @@ let symbolDescriptions: {[key: string]: SymbolDescription} = {};
  * @param name - unique name of the symbol type. It is used to find correct constructor on deserialization.
  * @param properties - list of property names that should be serialized.
  */
-export const registerSymbol = (constructor: SymbolConstructor, name: string, properties: string[]) => {
+export const registerSymbol = (constructor: SymbolConstructor<Feature>, name: string, properties: string[]) => {
     symbolDescriptions[name] = {Constructor: constructor, properties: properties};
 };
 
@@ -33,7 +34,7 @@ export const registerSymbol = (constructor: SymbolConstructor, name: string, pro
  * @param colorsFormat - color format to be used during serialization. If not set, the value from the symbol property
  *                       will be used without change.
  */
-export const serialize = (symbol: Symbol, colorsFormat: string = null): SerializedSymbol => {
+export const serialize = (symbol: Symbol<Feature>, colorsFormat: string = null): SerializedSymbol => {
     let keys = Object.keys(symbolDescriptions);
     for (let i = 0; i < keys.length; i++) {
         let desc = symbolDescriptions[keys[i]];

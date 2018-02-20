@@ -1,27 +1,27 @@
 import {SnappingProviderBase, SnappingProviderBaseParams} from "./SnappingProviderBase";
-import {FeatureLayer} from "../../layers/FeatureLayer";
+import {VisualObjectLayer} from "../../layers/VisualObjectLayer";
 import {Map} from "../../Map";
 import {SnappingData} from "./SnappingMethods";
 import {Bbox} from "../../Bbox";
 import {Point} from "../../Point";
 import {Coordinates} from "../../baseTypes";
-import {PointFeature} from "../../features/Point";
+import {PointFeature} from "../../features/PointFeature";
 import {Poly} from "../../features/Poly";
 import {Polygon} from "../../features/Polygon";
 import {ISnappingProvider} from "./ISnappingProvider";
 
 /**
- * Provides snapping to points, lines and polygons in a [[FeatureLayer]].
+ * Provides snapping to points, lines and polygons in a [[VisualObjectLayer]].
  */
 export class FeatureLayerSnappingProvider extends SnappingProviderBase {
-    private readonly _layer: FeatureLayer;
+    private readonly _layer: VisualObjectLayer;
 
     /**
      * @param map - working map of the control that uses snapping.
-     * @param layer - the layer that contains the features to be snapped to.
+     * @param layer - the layer that contains the visualObjects to be snapped to.
      * @param params - snapping parameters.
      */
-    constructor(map: Map, layer: FeatureLayer, params: SnappingProviderBaseParams = {}) {
+    constructor(map: Map, layer: VisualObjectLayer, params: SnappingProviderBaseParams = {}) {
         super(map, params);
 
         this._layer = layer;

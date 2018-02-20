@@ -35,7 +35,7 @@ type TileIndex = {
 /**
  * A layer that is drawn as a set of tile images received from server. The layer calculates tile indexes (x, y, z)
  * according to the tile scheme and requested resolution, then inserts them into url mask and creates ImageFeatures
- * for each tile. The features are cached by the layer to prevent unnecessary recalculations and garbage collection.
+ * for each tile. The visualObjects are cached by the layer to prevent unnecessary recalculations and garbage collection.
  * @alias sGis.TileLayer
  */
 export class TileLayer extends Layer {

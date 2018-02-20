@@ -1,28 +1,22 @@
 import {Point} from "../Point";
 import {Feature, FeatureParams} from "./Feature";
 import {Bbox} from "../Bbox";
-import {PointFeature} from "./Point";
-import {PointSymbol} from "../symbols/point/Point";
-import {Symbol} from "../symbols/Symbol";
-import {Render} from "../renders/Render";
+import {Crs} from "../Crs";
 
 /**
  * Represents a set of points on a map that behave as one feature: have same symbol, can be added, transformed or removed as one.
  * @alias sGis.feature.MultiPoint
- * @extends sGis.Feature
  */
 export class MultiPoint extends Feature {
     private _points: any[];
     private _bbox: Bbox;
 
-    _symbol: Symbol;
-
     /**
      * @param {Position[]} points - set of the points' coordinates
      * @param {Object} properties - key-value set of properties to be set to the instance
      */
-    constructor(points = [], { symbol = new PointSymbol(), crs }: FeatureParams  = {}, extension?: Object) {
-        super({ symbol, crs }, extension);
+    constructor(points = [], {crs}: FeatureParams  = {}) {
+        super({crs});
         this._points = points;
     }
 
@@ -37,18 +31,14 @@ export class MultiPoint extends Feature {
         this._update();
     }
 
-    /**
-     * Returns a copy of the feature, projected into the given coordinate system. Only generic properties are copied to the projected feature.
-     * @param {sGis.Crs} crs - target coordinate system.
-     * @returns {sGis.feature.MultiPoint}
-     */
-    projectTo(crs) {
+    projectTo(crs: Crs): Feature
+    projectTo(crs: Crs): MultiPoint {
         let projected = [];
         this._points.forEach(point => {
             projected.push(new Point(point, this.crs).projectTo(crs).coordinates);
         });
 
-        return new MultiPoint(projected, {symbol: this.symbol, crs: crs});
+        return new MultiPoint(projected, {crs: crs});
     }
 
     /**
@@ -72,28 +62,9 @@ export class MultiPoint extends Feature {
         this._update();
     }
 
-    _update() {
+    protected _update() {
         this._bbox = null;
-        this.redraw();
-    }
-
-    render(resolution, crs): Render[] {
-        if (this.hidden || !this.symbol) return [];
-        if (!this._needToRender(resolution, crs)) return this._rendered.renders;
-
-        let renders = [];
-        this._points.forEach(point => {
-            let f = new PointFeature(point, {crs: this.crs, symbol: this.symbol});
-            renders = renders.concat(f.render(resolution, crs));
-        });
-
-        this._rendered = {
-            resolution: resolution,
-            crs: crs,
-            renders: renders
-        };
-
-        return this._rendered.renders;
+        super._update();
     }
 
     get bbox() {

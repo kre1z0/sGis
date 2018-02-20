@@ -3,8 +3,6 @@ import {IPoint, Point} from "../Point";
 import {Coordinates} from "../baseTypes";
 import {Bbox} from "../Bbox";
 import {Crs} from "../Crs";
-import {PointSymbol} from "../symbols/point/Point";
-import {Symbol} from "../symbols/Symbol";
 
 /**
  * Simple geographical point.
@@ -12,20 +10,19 @@ import {Symbol} from "../symbols/Symbol";
  */
 export class PointFeature extends Feature implements IPoint {
     private _position: Coordinates;
-    protected _symbol: Symbol;
 
     /**
      * @param {Position} position - coordinates of the point
      * @param {Object} properties - key-value set of properties to be set to the instance
      */
-    constructor(position: Coordinates, { symbol = new PointSymbol(), crs }: FeatureParams = {}, extension?: Object) {
-        super({ symbol, crs }, extension);
+    constructor(position: Coordinates, {crs}: FeatureParams = {}) {
+        super({crs});
         this._position = position;
     }
 
     projectTo(crs: Crs): PointFeature {
         let projected = Point.prototype.projectTo.call(this, crs);
-        return new PointFeature(projected.position, { crs: crs, symbol: this.symbol });
+        return new PointFeature(projected.position, {crs: crs});
     }
 
     /**
@@ -40,7 +37,7 @@ export class PointFeature extends Feature implements IPoint {
     get position(): Coordinates { return [this._position[0], this._position[1]]; }
     set position(position: Coordinates) {
         this._position = position;
-        this.redraw();
+        this._update();
     }
 
     get point(): Point { return new Point(this.position, this.crs); }
@@ -49,13 +46,13 @@ export class PointFeature extends Feature implements IPoint {
     get x(): number { return this._position[0]; }
     set x(x: number) {
         this._position[0] = x;
-        this.redraw();
+        this._update();
     }
 
     get y(): number { return this._position[1]; }
     set y(y: number) {
         this._position[1] = y;
-        this.redraw();
+        this._update();
     }
 
     get coordinates(): Coordinates { return [this.position[0], this.position[1]]; }

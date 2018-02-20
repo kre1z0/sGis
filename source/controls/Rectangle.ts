@@ -13,7 +13,7 @@ export class Rectangle extends PolyDrag {
     }
 
     protected _getUpdatedCoordinates(point: Point): Contour[] {
-        const coord = this._activeFeature.rings[0];
+        const coord = this._activeObject.feature.rings[0];
         const pointCoord = point.position;
 
         return [[coord[0], [coord[1][0], pointCoord[1]], pointCoord, [pointCoord[0], coord[3][1]]]];

@@ -1,6 +1,6 @@
 import {DynamicPointSymbol} from "../Symbol";
 import {Feature} from "../../features/Feature";
-import {LabelFeature} from "../../features/Label";
+import {LabelFeature} from "../../features/LabelFeature";
 import {setCssClasses} from "../../utils/utils";
 import {Offset} from "../../baseTypes";
 

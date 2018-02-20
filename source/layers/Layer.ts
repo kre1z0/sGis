@@ -44,8 +44,8 @@ export class VisibilityChangeEvent extends sGisEvent {
 }
 
 /**
- * Base class for all map layers. A layer is a container for features, that is responsible for filter out (or create)
- * features for requested bbox and resolution.
+ * Base class for all map layers. A layer is a container for visualObjects, that is responsible for filter out (or create)
+ * visualObjects for requested bbox and resolution.
  * @alias sGis.Layer
  */
 export abstract class Layer extends EventHandler {
@@ -77,7 +77,7 @@ export abstract class Layer extends EventHandler {
 
     /**
      * Returns the array of renders to be drawn for given parameters.
-     * @param bbox - bounding box of the area to get features from
+     * @param bbox - bounding box of the area to get visualObjects from
      * @param resolution - current resolution
      */
     abstract getRenders(bbox: Bbox, resolution: number): Render[]
@@ -117,7 +117,7 @@ export abstract class Layer extends EventHandler {
     }
 
     /**
-     * Opacity of the layer. It sets the opacity of all features in this layer. Valid values: [0..1].
+     * Opacity of the layer. It sets the opacity of all visualObjects in this layer. Valid values: [0..1].
      * @fires [[PropertyChangeEvent]]
      */
     get opacity(): number { return this.getOpacity(); }

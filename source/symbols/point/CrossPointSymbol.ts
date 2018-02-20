@@ -1,9 +1,8 @@
 import {Symbol} from "../Symbol";
 import {Offset} from "../../baseTypes";
-import {Feature} from "../../features/Feature";
 import {Crs} from "../../Crs";
 import {Render} from "../../renders/Render";
-import {PointFeature} from "../../features/Point";
+import {PointFeature} from "../../features/PointFeature";
 import {FillStyle, PolyRender} from "../../renders/Poly";
 
 export interface CrossPointSymbolConstructorParams {
@@ -17,7 +16,7 @@ export interface CrossPointSymbolConstructorParams {
     strokeWidth?: number
 }
 
-export class CrossPointSymbol extends Symbol {
+export class CrossPointSymbol extends Symbol<PointFeature> {
     /** Size of the square. */
     size: number = 11;
 
@@ -39,9 +38,7 @@ export class CrossPointSymbol extends Symbol {
 
     }
 
-    renderFunction(feature: Feature, resolution: number, crs: Crs): Render[] {
-        if (!(feature instanceof PointFeature)) return [];
-
+    renderFunction(feature: PointFeature, resolution: number, crs: Crs): Render[] {
         let position = feature.projectTo(crs).position;
         let pxPosition = [position[0] / resolution, - position[1] / resolution];
         let halfSize = this.size / 2;

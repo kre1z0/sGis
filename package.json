@@ -13,7 +13,7 @@
     "doc": "npm run build-doc && npm run build-samples && npm run copy-samples",
     "version": "node ./config/set_version.js && git add source/sGis.ts",
     "test": "jest --no-cache",
-    "build-doc": "typedoc --out doc/ source/ --excludePrivate --theme doc-theme",
+    "build-doc": "typedoc --out doc/ source/ --excludePrivate --theme doc-theme --mode file",
     "build-ts": "tsc",
     "build-samples": "tsc -p ./config/tsconfig-samples.json && node ./config/build-samples.js && npm run copy-samples",
     "copy-samples": "ncp ./temp/samples ./doc/samples && ncp ./temp/source ./doc/source && ncp ./samples/resources ./doc/samples/resources",

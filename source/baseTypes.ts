@@ -12,7 +12,7 @@ export type Coordinates = [number, number];
 export type Offset = [number, number];
 
 /**
- * A set of coordinate pairs that represent a set of points (form multipoint features), a polyline or a contour of a polygon.
+ * A set of coordinate pairs that represent a set of points (form multipoint visualObjects), a polyline or a contour of a polygon.
  */
 export type Contour = Coordinates[];
 

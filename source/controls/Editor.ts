@@ -1,4 +1,4 @@
-import {ChangeEvent, Control, ControlConstructorParams, EditEvent} from "./Control";
+import {ChangeEvent, Control, ControlParams, EditEvent} from "./Control";
 import {StateManager} from "../utils/StateManager";
 import {PointEditor} from "./PointEditor";
 import {PolyEditor} from "./PolyEditor";
@@ -6,11 +6,11 @@ import {PolyTransform} from "./PolyTransform";
 import {getGuid} from "../utils/utils";
 import {listenDomEvent, removeDomEventListener} from "../utils/domEvent";
 import {EditorSymbol} from "../symbols/EditorSymbol";
-import {FeaturesAddEvent, FeaturesRemoveEvent} from "../layers/FeatureLayer";
+import {FeaturesAddEvent, FeaturesRemoveEvent} from "../layers/VisualObjectLayer";
 import {ISnappingProvider} from "./snapping/ISnappingProvider";
 import {sGisClickEvent} from "../commonEvents";
 import {Feature} from "../features/Feature";
-import {PointFeature} from "../features/Point";
+import {PointFeature} from "../features/PointFeature";
 import {Poly} from "../features/Poly";
 import {sGisEvent} from "../EventHandler";
 import {Contour, Coordinates} from "../baseTypes";
@@ -18,6 +18,7 @@ import {Map} from "../Map";
 import {SnappingProviderBase} from "./snapping/SnappingProviderBase";
 import {emptySnapping} from "./snapping/SnappingMethods";
 import {CombinedSnappingProvider} from "./snapping/CombinedSnappingProvider";
+import {VisualFeature} from "../visualObjects/VisualObject";
 
 export class FeatureSelectEvent extends sGisEvent {
     static type: string = 'featureSelect';
@@ -53,14 +54,14 @@ export class FeatureRemoveEvent extends sGisEvent {
 }
 
 type EditState = {
-    feature: Feature,
+    feature: VisualFeature,
     coordinates: Coordinates | Contour[] | null
 }
 
 const modes = ['vertex', 'rotate', 'scale', 'drag'];
 
 /**
- * Control for editing points, polylines and polygons. It uses PointEditor, PolyEditor, PolyTransform and Snapping classes for editing corresponding features.
+ * Control for editing points, polylines and polygons. It uses PointEditor, PolyEditor, PolyTransform and Snapping classes for editing corresponding visualObjects.
  * @alias sGis.controls.Editor
  */
 export class Editor extends Control {
@@ -90,7 +91,7 @@ export class Editor extends Control {
      * @param map - map object the control will work with
      * @param options - key-value set of properties to be set to the instance
      */
-    constructor(map: Map, {snappingProvider = null, isActive = false, activeLayer = null}: ControlConstructorParams = {}) {
+    constructor(map: Map, {snappingProvider = null, isActive = false, activeLayer = null}: ControlParams = {}) {
         super(map, {snappingProvider, activeLayer});
 
         this._ns = '.' + getGuid();
@@ -155,7 +156,7 @@ export class Editor extends Control {
 
     protected _activate(): void {
         if (!this.activeLayer) return;
-        this.activeLayer.features.forEach(this._setListener, this);
+        this.activeLayer.visualObjects.forEach(this._setListener, this);
         this.activeLayer.on(FeaturesAddEvent.type, this._handleFeatureAdd);
         this.activeLayer.on(FeaturesRemoveEvent.type, this._handleFeatureRemove);
         this.activeLayer.redraw();
@@ -165,19 +166,19 @@ export class Editor extends Control {
     }
 
     private _handleFeatureAdd(event: FeaturesAddEvent): void {
-        event.features.forEach(f => this._setListener(f));
+        event.visualObjects.forEach(this._setListener);
     }
 
     private _handleFeatureRemove(event: FeaturesRemoveEvent): void {
-        event.features.forEach(f => this._removeListener(f));
+        event.visualObjects.forEach(this._removeListener);
     }
 
-    private _setListener(feature: Feature): void {
-        feature.on(sGisClickEvent.type + this._ns, this._handleFeatureClick.bind(this, feature));
+    private _setListener(visualObject: VisualFeature): void {
+        visualObject.feature.on(sGisClickEvent.type + this._ns, this._handleFeatureClick.bind(this, visualObject));
     }
 
-    private _removeListener(feature: Feature): void {
-        feature.off(sGisClickEvent.type + this._ns);
+    private _removeListener(visualObject: VisualFeature): void {
+        visualObject.feature.off(sGisClickEvent.type + this._ns);
     }
 
     private _onMapClick(): void {
@@ -186,7 +187,7 @@ export class Editor extends Control {
 
     protected _deactivate(): void {
         this._deselect();
-        this.activeLayer.features.forEach(this._removeListener, this);
+        this.activeLayer.visualObjects.forEach(this._removeListener, this);
         this.activeLayer.off('featureAdd', this._handleFeatureAdd);
         this.activeLayer.off('featureRemove', this._handleFeatureRemove);
         this.map.off('click', this._deselect);
@@ -194,51 +195,47 @@ export class Editor extends Control {
         removeDomEventListener(document, 'keydown', this._handleKeyDown);
     }
 
-    /**
-     * Selects a given feature if it is in the active layer.
-     * @param feature
-     */
-    select(feature: Feature) { this.activeFeature = feature; }
+    select(object: VisualFeature) { this.activeObject = object; }
 
     /**
      * Clears selection if any.
      */
-    deselect(): void { this.activeFeature = null; }
+    deselect(): void { this.activeObject = null; }
 
     /**
      * Currently selected for editing feature.
      */
-    get activeFeature(): Feature { return this._activeFeature; }
-    set activeFeature(feature: Feature) {
-        if (feature) this.activate();
-        this._select(feature);
+    get activeObject(): VisualFeature { return this._activeFeature; }
+    set activeObject(object: VisualFeature) {
+        if (object) this.activate();
+        this._select(object);
     }
 
-    private _handleFeatureClick(feature: Feature, event: sGisClickEvent): void {
+    private _handleFeatureClick(visualObject: VisualFeature, event: sGisClickEvent): void {
         if (this.ignoreEvents) return;
         event.stopPropagation();
-        this._select(feature);
+        this._select(visualObject);
     }
 
-    private _select(feature: Feature): void {
-        if (this._activeFeature === feature) return;
+    private _select(visualObject: VisualFeature): void {
+        if (this._activeFeature === visualObject) return;
         this._deselect();
 
-        this._activeFeature = feature;
-        if (!feature) return;
+        this._activeFeature = visualObject;
+        if (!visualObject) return;
 
-        feature.setTempSymbol(new EditorSymbol({ baseSymbol: feature.symbol }));
-        if (feature instanceof PointFeature) {
+        visualObject.setTempSymbol(new EditorSymbol({ baseSymbol: visualObject.symbol }));
+        if (visualObject instanceof PointFeature) {
             this._pointEditor.activeLayer = this.activeLayer;
-            this._pointEditor.activeFeature = feature;
-        } else if (feature instanceof Poly) {
-            this._activatePolyControls(feature);
+            this._pointEditor.activeFeature = visualObject;
+        } else if (visualObject instanceof Poly) {
+            this._activatePolyControls(visualObject);
         }
         this.activeLayer.redraw();
 
         this._saveState();
 
-        this.fire(new FeatureSelectEvent(feature));
+        this.fire(new FeatureSelectEvent(visualObject.feature));
     }
 
     private _activatePolyControls(feature: Poly): void {
@@ -277,7 +274,7 @@ export class Editor extends Control {
      * Sets the editing mode. Available modes are:<br>
      *     * vertex - editing vertexes of polygons and polylines.
      *     * rotate - rotation of polygons and polylines
-     *     * drag - dragging of whole features
+     *     * drag - dragging of whole visualObjects
      *     * scale - scaling of polygons and polylines
      *     * all - all modes are active
      * @param mode - can be coma separated list or array of mode names
@@ -351,16 +348,16 @@ export class Editor extends Control {
     private _setState(state: EditState) {
         if (!state) return this._deselect();
 
-        if (!state.coordinates && this.activeLayer.features.indexOf(state.feature) >= 0) {
-            this.activeFeature = null;
+        if (!state.coordinates && this.activeLayer.visualObjects.indexOf(state.feature) >= 0) {
+            this.activeObject = null;
             this.activeLayer.remove(state.feature);
-        } else if (state.coordinates && this.activeLayer.features.indexOf(state.feature) < 0) {
+        } else if (state.coordinates && this.activeLayer.visualObjects.indexOf(state.feature) < 0) {
             this._setCoordinates(state);
             this.activeLayer.add(state.feature);
-            this.activeFeature = state.feature;
+            this.activeObject = state.feature;
         } else if (state.coordinates) {
             this._setCoordinates(state);
-            this.activeFeature = state.feature;
+            this.activeObject = state.feature;
         }
 
         this._updateTransformControl();
