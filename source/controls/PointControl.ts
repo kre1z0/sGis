@@ -15,6 +15,7 @@ export interface PointControlParams extends ControlParams {
  * to the active layer. If active layer is not set, the point feature will be given through 'drawingFinish' event.
  * @alias sGis.controls.Point
  * @fires [[DrawingFinishEvent]]
+ * @example controls/Point_Control
  */
 export class PointControl extends Control {
     /** Symbol of the points that are created by the control. */

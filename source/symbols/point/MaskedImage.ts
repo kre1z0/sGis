@@ -178,6 +178,7 @@ export class MaskedImage extends Symbol<PointFeature> {
 
     _recolorMask(imageData: ImageData): void {
         let maskColor = new Color(this.maskColor);
+        if (!maskColor.isValid) debugger;
         let alphaNormalizer = 65025;
 
         let d = imageData.data;
