@@ -28,32 +28,35 @@ export interface DynamicImageSymbolParams {
  */
 export class DynamicImageSymbol extends DynamicPointSymbol {
     /** Width of the image. If not set, image will be automatically resized according to height. If both width and height are not set, original image size will be used. */
-    width: number = 32;
+    width: number;
 
     /** Height of the image. If not set, image will be automatically resized according to width. If both width and height are not set, original image size will be used. */
-    height: number = 32;
+    height: number;
 
     /**
      * Anchor point of the image. If set to [0, 0], image's left top corner will be at the feature position.<br>
      *     Anchor point does not scale with width and height parameters.
      */
-    anchorPoint: Offset = [16, 32];
+    anchorPoint: Offset;
 
     /** Source of the image. Can be url or data:url string. */
-    source: string = PIN_IMAGE;
+    source: string;
 
     /**
      * Clockwise rotation of the image in radians.
      */
-    angle: number = 0;
+    angle: number;
 
     /**
      * @param options - key-value list of the properties to be assigned to the instance.
      */
-    constructor(options: DynamicImageSymbolParams = {}) {
-        super();
-        Object.assign(this, options);
-
+    constructor({width = 32, height = 32, source = PIN_IMAGE, angle = 0, anchorPoint = [16, 32]}: DynamicImageSymbolParams = {}) {
+        super({offset: [0, 0]});
+        this.width = width;
+        this.height = height;
+        this.angle = angle;
+        this.anchorPoint = anchorPoint;
+        this.source = source;
     }
 
     protected _getFeatureNode(feature: Feature): HTMLElement {
