@@ -63,6 +63,7 @@ const modes = ['vertex', 'rotate', 'scale', 'drag'];
 /**
  * Control for editing points, polylines and polygons. It uses PointEditor, PolyEditor, PolyTransform and Snapping classes for editing corresponding visualObjects.
  * @alias sGis.controls.Editor
+ * @example controls/Editor_Control
  */
 export class Editor extends Control {
     private _ignoreEvents: boolean;
@@ -224,12 +225,12 @@ export class Editor extends Control {
         this._activeFeature = visualObject;
         if (!visualObject) return;
 
-        visualObject.setTempSymbol(new EditorSymbol({ baseSymbol: visualObject.symbol }));
-        if (visualObject instanceof PointFeature) {
+        visualObject.tempSymbol = new EditorSymbol({ baseSymbol: visualObject.symbol });
+        if (visualObject.feature instanceof PointFeature) {
             this._pointEditor.activeLayer = this.activeLayer;
-            this._pointEditor.activeFeature = visualObject;
-        } else if (visualObject instanceof Poly) {
-            this._activatePolyControls(visualObject);
+            this._pointEditor.activeFeature = visualObject.feature;
+        } else if (visualObject.feature instanceof Poly) {
+            this._activatePolyControls(visualObject.feature);
         }
         this.activeLayer.redraw();
 
@@ -259,7 +260,7 @@ export class Editor extends Control {
 
         let feature = this._activeFeature;
 
-        this._activeFeature.clearTempSymbol();
+        this._activeFeature.tempSymbol = null;
         this._activeFeature = null;
         this.activeLayer.redraw();
 

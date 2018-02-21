@@ -49,6 +49,14 @@ export class VisualObject<T extends Feature> {
         this.update();
     }
 
+    get tempSymbol(): Symbol<T> { return this._tempSymbol; }
+    set tempSymbol(value: Symbol<T>) {
+        this._tempSymbol = value;
+        this.update();
+    }
+
+    get currentSymbol(): Symbol<T> { return this._tempSymbol || this._symbol; }
+
     get feature(): T { return this._feature; }
 
     update(): void {
@@ -56,13 +64,13 @@ export class VisualObject<T extends Feature> {
     }
 
     render(resolution: number, crs: Crs): Render[] {
-        if (this._hidden || !this.symbol) return [];
+        if (this._hidden || !this.currentSymbol) return [];
         if (!this._needToRender(resolution, crs)) return this._rendered.renders;
 
         this._rendered = {
             resolution: resolution,
             crs: crs,
-            renders: this.symbol.renderFunction(this._feature, resolution, crs),
+            renders: this.currentSymbol.renderFunction(this._feature, resolution, crs),
             updateTs: this._feature.updateTs
         };
 
